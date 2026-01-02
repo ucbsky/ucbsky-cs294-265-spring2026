@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 294-265: Building Real-World Systems with AI from Scratch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a1a1a;
+            --secondary: #666;
+            --accent: #0066cc;
+            --bg: #ffffff;
+            --border: #e5e5e5;
+            --hover: #f5f5f5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--primary);
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 2rem 0;
+            margin-bottom: 3rem;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        nav a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        nav a:hover,
+        nav a.active {
+            color: var(--primary);
+        }
+
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--hover);
+            border-radius: 8px;
+        }
+
+        /* Grading section: stay on one line and align percentage to the right */
+        .grading-grid {
+            display: inline-grid;
+            grid-template-columns: auto auto;
+            column-gap: 1.25rem;
+            width: fit-content;
+            max-width: 100%;
+        }
+
+        .grading-grid .info-label {
+            white-space: nowrap;
+        }
+
+        .grading-grid .info-value {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: var(--secondary);
+        }
+
+        .info-value {
+            color: var(--primary);
+        }
+
+        .description {
+            line-height: 1.8;
+            color: var(--primary);
+            margin: 2rem 0;
+            text-align: justify;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        /* Special wrapper for the schedule table */
+        .table-wrapper {
+            width: 100vw;
+            position: relative;
+            left: 50%;
+            right: 50%;
+            margin-left: -50vw;
+            margin-right: -50vw;
+            overflow-x: auto;
+            padding: 0 20px;
+        }
+
+        .table-wrapper table {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        th {
+            background: var(--hover);
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+            font-weight: 500;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background: var(--hover);
+        }
+
+        .date {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .topic {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        /* Ensure one paper per line in readings and prevent wrapping */
+        .readings {
+            white-space: nowrap;
+        }
+
+        .readings a {
+            display: block;
+            white-space: nowrap;
+        }
+
+        .readings>* {
+            display: block;
+            white-space: nowrap;
+        }
+
+        /* Inline readings: keep all papers on one horizontal line without wrapping */
+        .readings-inline {
+            white-space: nowrap;
+            overflow-x: auto;
+        }
+
+        .readings-inline a {
+            display: inline-block;
+            white-space: nowrap;
+            margin-right: 1rem;
+        }
+
+        .placeholder {
+            color: var(--secondary);
+            font-style: italic;
+        }
+
+        .announcement {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .announcement h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        .resources {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .resource-card {
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .resource-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .resource-card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .resource-card p {
+            color: var(--secondary);
+            font-size: 0.95rem;
+        }
+
+        footer {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Keep grading two-column on mobile while preventing wraps */
+            .grading-grid {
+                display: inline-grid;
+                grid-template-columns: auto auto;
+                column-gap: 1rem;
+                width: fit-content;
+                max-width: 100%;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Building Real-World Systems with AI from Scratch</h1>
+            <p class="subtitle">CS294 • Spring 2026 • UC Berkeley</p>
+            <nav>
+                <a href="#home" class="nav-link active">Home</a>
+                <a href="#resources" class="nav-link">Resources</a>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Home Page -->
+            <div id="home" class="page active">
+                <div class="info-grid">
+                    <div class="info-label">Instructors</div>
+                    <div class="info-value">Prof. Ion Stoica</div>
+
+                    <div class="info-label">Schedule</div>
+                    <div class="info-value">Monday, 9:00 AM - 11:59 AM</div>
+
+                    <div class="info-label">Dates</div>
+                    <div class="info-value">1/20/2026 - 5/8/2026</div>
+
+                    <div class="info-label">Location</div>
+                    <div class="info-value">Soda 310</div>
+
+                    <div class="info-label">Level</div>
+                    <div class="info-value">Graduate</div>
+
+                    <div class="info-label">Units</div>
+                    <div class="info-value">4</div>
+                </div>
+
+                <h2>Course Description</h2>
+                <p class="description">
+                    <strong>The central inquiry of this course is: Can AI-based tools enable a small team to build
+                        real-world systems orders of magnitude faster than traditional methods?</strong>
+                </p>
+
+                <p class="description">
+                    The rapid advancement of AI has led to significant successes in systems research, particularly in
+                    the performance optimization of existing systems. In parallel, AI-powered code assistants have
+                    demonstrated increasing capability, often generating entire pull requests for application-level
+                    code. However, their utility for the more demanding task of building robust, concurrent, and
+                    high-performance systems from the ground up remains a largely open question.
+                </p>
+
+                <p class="description">
+                    This course tackles this challenge. We will investigate the end-to-end lifecycle of building new
+                    systems and subsystems using the latest generative AI tools, as well as improving these tools. Our
+                    exploration will include:
+                </p>
+
+                <ul class="description" style="margin-left: 2rem; margin-top: 1rem; margin-bottom: 1rem;">
+                    <li>Designing new architectures that are more amenable to using AI tools.</li>
+                    <li>Developing new AI tools that target building systems or systems components from scratch.</li>
+                    <li>Developing fast, accurate simulators.</li>
+                    <li>Generating formal specifications for protocols and components.</li>
+                    <li>Guiding iterative performance optimization and tuning.</li>
+                </ul>
+
+                <p class="description">
+                    Students will work on hands-on projects to build systems such as distributed collective
+                    communication libraries, distributed storage systems, distributed inference engines, new kernels for
+                    new accelerators, and more.
+                </p>
+
+                <p class="description" style="font-style: italic; color: var(--secondary);">
+                    Note: Here we use "systems" broadly to include databases, distributed systems, networking,
+                    programming languages, and operating systems.
+                </p>
+
+                <div class="announcement">
+                    <h3>📢 Announcements</h3>
+                    <p>Welcome to Spring 2026! Please check back for updates on readings and assignments.</p>
+                    <p>If you haven't done so already, please join our Slack here: <a
+                            href="https://join.slack.com/t/cs294-265-sp26/shared_invite/zt-3dcqanv6o-FbcU2krIS2mc7sFuparaig">CS294-265
+                            Spring 2026 Slack</a>.</p>
+                </div>
+
+                <h2>Course Schedule</h2>
+                <p style="margin-bottom: 2rem; color: var(--secondary);">
+                    <em>Note: This syllabus is tentative and subject to change. Please check back regularly for
+                        updates.</em>
+                </p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <colgroup>
+                            <col style="width: 3%;">
+                            <col style="width: 6%;">
+                            <col style="width: 10%;">
+                            <col style="width: 40%;">
+                            <col style="width: 20%;">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>Week</th>
+                                <th>Date</th>
+                                <th>Topic</th>
+                                <th>Readings (tentative list, subject to change)</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td class="date">Jan 19</td>
+                                <td class="topic">Academic Holiday</td>
+                                <td class="readings">—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td class="date">Jan 26</td>
+                                <td class="topic">Class overview, logistics, project suggestions</td>
+                                <td class="readings">
+                                    <a href="https://arxiv.org/abs/2506.13131">AlphaEvolve: A coding agent for
+                                        scientific and algorithmic discovery</a>
+                                    <a href="https://github.com/algorithmicsuperintelligence/openevolve">OpenEvolve:
+                                        Automated Discovery of Algorithms and Systems</a>
+                                    <a href="https://arxiv.org/abs/2509.19349">ShinkaEvolve: Towards Open-Ended And
+                                        Sample-Efficient Program Evolution</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td class="date">Feb 2</td>
+                                <td class="topic">Ongoing Evolve projects</td>
+                                <td class="readings">
+                                    <div>AutoEvolve</div>
+                                    <div>Evolve^2</div>
+                                    <a href="https://arxiv.org/abs/2507.19457">GEPA: Reflective Prompt Evolution Can
+                                        Outperform Reinforcement Learning</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td class="date">Feb 9</td>
+                                <td class="topic">Project proposals presentations</td>
+                                <td>—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td class="date">Feb 16</td>
+                                <td class="topic">Academic Holiday</td>
+                                <td>—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td class="date">Feb 23</td>
+                                <td class="topic">Repo-level coding and repair</td>
+                                <td class="readings">
+                                    <a href="https://arxiv.org/abs/2310.06770">SWE-bench: Can Language Models Resolve
+                                        Real-World GitHub Issues?</a>
+                                    <a href="https://arxiv.org/abs/2405.15793">SWE-agent: Agent-Computer Interfaces
+                                        Enable Automated Software Engineering</a>
+                                    <a href="https://arxiv.org/abs/2506.03283">Empirical Evaluation of Generalizable
+                                        Automated Program Repair with Large Language Models</a>
+                                    <a
+                                        href="https://proceedings.iclr.cc/paper_files/paper/2025/file/d29b8d53678015079e1d245c023e49d2-Paper-Conference.pdf">OpenRCA:
+                                        Can Large Language Models Locate the Root Cause of Software Failures?</a>
+                                    <a href="https://arxiv.org/abs/2507.06920">Rethinking Verification for LLM Code
+                                        Generation: From Generation to Testing</a>
+                                    <a href="https://arxiv.org/pdf/2404.14662">NExT: Teaching Large Language Models to
+                                        Reason about Code Execution</a>
+                                    <a href="https://arxiv.org/pdf/2405.17503">Code Repair with LLMs gives an
+                                        Exploration-Exploitation Tradeoff</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>7</td>
+                                <td class="date">March 2</td>
+                                <td class="topic">Formal Verification & Reliability</td>
+                                <td class="readings">
+                                    <a href="https://arxiv.org/abs/2309.11495">Chain-of-Verification Reduces
+                                        Hallucination in Large Language Models</a>
+                                    <a href="https://arxiv.org/pdf/2501.06283">Dafny as Verification-Aware Intermediate
+                                        Language for Code Generation</a>
+                                    <a href="https://arxiv.org/abs/2511.09030">Solving a Million-Step LLM Task with Zero
+                                        Errors</a>
+                                    <a href="https://arxiv.org/pdf/2405.15722">Models That Prove Their Own
+                                        Correctness</a>
+                                    <a href="https://arxiv.org/abs/2502.07728">Verifying LLM-Generated Code in the
+                                        Context of Software Verification with Ada/SPARK</a>
+                                    <a href="https://arxiv.org/pdf/2403.18120">Don't Trust: Verify — Grounding LLM
+                                        Quantitative Reasoning with Autoformalization</a>
+                                    <a href="https://arxiv.org/pdf/2506.04592">Safe: Enhancing Mathematical Reasoning in
+                                        Large Language Models via Retrospective Stepaware Formal Verification</a>
+                                    <a
+                                        href="https://zhehou.github.io/papers/Position-Trustworthy-AI-Agents-Require-the-Integration-of-Large-Language-Models-and-Formal-Methods.pdf">Position:
+                                        Trustworthy AI Agents Require the Integration of Large Language Models and
+                                        Formal Methods</a>
+                                    <a href="https://arxiv.org/abs/2412.05299">Specifications: The missing link to
+                                        making the development of LLM systems an engineering discipline</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>8</td>
+                                <td class="date">Mar 9</td>
+                                <td class="topic">Simulations</td>
+                                <td class="readings">
+                                    <a href="https://dl.acm.org/doi/epdf/10.1145/3731569.3764825">Fast End-to-End
+                                        Performance Simulation of Accelerated Hardware-Software Stacks</a>
+                                    <a href="https://dl.acm.org/doi/epdf/10.1145/3713082.3730380">Analyzing Metastable
+                                        Failures</a>
+                                    <a href="https://www.usenix.org/conference/nsdi25/presentation/wang-xizheng-simai">SimAI:
+                                        Unifying Architecture Design and Performance Tuning for Large-Scale Large
+                                        Language Model Training</a>
+                                    <a href="https://arxiv.org/pdf/2201.00561">Zero-Shot Cost Models for
+                                        Out-of-Distribution Query Workloads</a>
+                                    <a href="https://arxiv.org/abs/2201.01811">CausalSim: A Causal Framework for
+                                        Unbiased Trace-Driven Simulation</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>9</td>
+                                <td class="date">Mar 16</td>
+                                <td class="topic">AI-driven kernel optimizations</td>
+                                <td class="readings">
+                                    <a href="https://openreview.net/forum?id=yeoN1iQT1x">KernelBench: Can LLMs Write
+                                        Efficient GPU Kernels?</a>
+                                    <a href="https://arxiv.org/pdf/2509.07506">Astra: A multi-agent system for gpu
+                                        kernel performance optimization</a>
+                                    <a
+                                        href="https://developer.nvidia.com/blog/automating-gpu-kernel-generation-with-deepseek-r1-and-inference-time-scaling/">Automating
+                                        GPU Kernel Generation with DeepSeek-R1 and Inference Time Scaling</a>
+                                    <a href="https://arxiv.org/pdf/2510.03760">EvoEngineer: Mastering Automated CUDA
+                                        Kernel Code Evolution with Large Language Models</a>
+                                    <a href="https://arxiv.org/pdf/2509.14279">Towards Robust Agentic CUDA Kernel
+                                        Benchmarking, Verification, and Optimization</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>10</td>
+                                <td class="date">Mar 23</td>
+                                <td class="topic">Spring Recess</td>
+                                <td>—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>11</td>
+                                <td class="date">Mar 30</td>
+                                <td class="topic">AI-driven training and inference optimizations </td>
+                                <td class="readings">
+                                    <a href="https://arxiv.org/pdf/2506.01374">REASONING COMPILER: LLM-Guided
+                                        Optimizations for Efficient Model Serving</a>
+                                    <a href="https://arxiv.org/pdf/2411.19146">PUZZLE: Distillation-based NAS for
+                                        inference-Optimized LLMs</a>
+                                    <a href="https://arxiv.org/pdf/2408.16737">Smaller, Weaker, Yet Better: Training LLM
+                                        Reasoners via Compute-Optimal Sampling</a>
+                                    <a href="https://arxiv.org/pdf/2506.22716">BEST-Route: Adaptive LLM Routing with
+                                        Test-Time Optimal Compute</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>12</td>
+                                <td class="date">Apr 6</td>
+                                <td class="topic">Paper Presentations</td>
+                                <td class="readings">—</td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>13</td>
+                                <td class="date">Apr 13</td>
+                                <td class="topic">AI-driven networking optimizations</td>
+                                <td class="readings">
+                                    <a href="https://www.usenix.org/conference/nsdi25/presentation/xu-guanbin">AutoCCL:
+                                        Automated Collective Communication Tuning for Accelerating Distributed and
+                                        Parallel DNN Training</a>
+                                    <a href="https://www.usenix.org/conference/nsdi25/presentation/zeng">Learning
+                                        Production-Optimized Congestion Control Selection for Alibaba Cloud CDN</a>
+                                    <a href="https://arxiv.org/pdf/2402.02338">NetLLM: Adapting Large Language Models
+                                        for Networking</a>
+                                    <a href="https://www.usenix.org/conference/nsdi23/presentation/shah">TACCL: Guiding
+                                        Collective Algorithm Synthesis using Communication Sketches</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>14</td>
+                                <td class="date">Apr 20</td>
+                                <td class="topic">AI for databases and databases for AI</td>
+                                <td class="readings">
+                                    <a href="https://arxiv.org/abs/2505.02284">Conformal Prediction for Verifiable
+                                        Learned Query Optimization</a>
+                                    <a href="https://arxiv.org/pdf/2506.16007">Data-Agnostic Cardinality Learning from
+                                        Imperfect Workloads</a>
+                                    <a href="https://mail.vldb.org/cidrdb/papers/2025/p29-zhao.pdf">NeurDB: On the
+                                        Design and Implementation of an AI-powered Autonomous Database</a>
+                                    <a href="https://arxiv.org/pdf/2510.07983">ZeroCard: Cardinality Estimation with
+                                        Zero Dependence on Target Databases – No Data, No Query, No Retraining</a>
+                                    <a href="https://arxiv.org/pdf/2411.03500">𝜆-Tune: Harnessing Large Language Models
+                                        for Automated Database System Tuning</a>
+                                    <a href="https://vldb.org/cidrdb/papers/2025/p12-liu.pdf">Palimpzest: Optimizing
+                                        AI-Powered Analytics with Declarative Query Processing</a>
+                                    <a href="https://arxiv.org/abs/2509.00997">Supporting Our AI Overlords: Redesigning
+                                        Data Systems to be Agent-First</a>
+                                </td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td>15</td>
+                                <td class="date">Apr 27</td>
+                                <td class="topic">Project presentations</td>
+                                <td>—</td>
+                                <td>—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Grading</h2>
+                <div class="info-grid grading-grid" style="background: white; border: 1px solid var(--border);">
+                    <div class="info-label">Paper presentations and reviews</div>
+                    <div class="info-value">20%</div>
+
+                    <div class="info-label">Class discussions and participation</div>
+                    <div class="info-value">20%</div>
+
+                    <div class="info-label">Project</div>
+                    <div class="info-value">60%</div>
+                </div>
+            </div>
+
+            <!-- Syllabus Page -->
+            <div id="syllabus" class="page">
+            </div>
+
+            <!-- Resources Page -->
+            <div id="resources" class="page">
+                <h2>Course Resources</h2>
+
+                <div class="resources">
+                    <!-- <div class="resource-card">
+                        <h3>📚 Reading List</h3>
+                        <p>Collection of papers and articles for the course. Updated weekly.</p>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <h3>🛠️ Tools & Software</h3>
+                        <p>OpenEvolve toolkit, development environments, and other required software.</p>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <h3>💻 Lab Materials</h3>
+                        <p>Instructions, starter code, and datasets for hands-on labs.</p>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <h3>🎯 Project Guidelines</h3>
+                        <p>Requirements, evaluation criteria, and example projects from previous years.</p>
+                    </div>
+                    
+                    <div class="resource-card">
+                        <h3>🔗 External Links</h3>
+                        <p>Related courses, conferences, and additional learning resources.</p>
+                    </div> -->
+
+                    <div class="resource-card">
+                        <h3>📁 Course Materials</h3>
+                        <p>
+                            Access homework assignments, signup sheets, and other course materials:
+                            <a href="https://drive.google.com/drive/folders/1J9Yg0az_ypNFOu5aFOBn0UFamKrT4e4B?usp=drive_link"
+                                target="_blank" rel="noopener noreferrer">Course Drive Folder</a>
+                        </p>
+                    </div>
+
+                    <div class="resource-card">
+                        <h3>💬 Slack</h3>
+                        <p>
+                            Join our course Slack for announcements and discussions:
+                            <a href="https://join.slack.com/t/cs294-264-fa25/shared_invite/zt-3dcqanv6o-FbcU2krIS2mc7sFuparaig"
+                                target="_blank" rel="noopener noreferrer">CS294-264 Spring 2026 Slack Invite</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- <h2>Prerequisites</h2>
+                <p class="description">
+                    Students should have a strong background in computer systems (CS162 or equivalent) and machine learning (CS189/CS289 or equivalent). Prior experience with systems research is helpful but not required. Proficiency in Python and at least one systems programming language is expected.
+                </p> -->
+
+                <h2>Academic Integrity</h2>
+                <p class="description">
+                    All work submitted must be your own. Collaboration is encouraged for understanding concepts and
+                    debugging, but code and written reports must be completed independently unless explicitly stated
+                    otherwise. Use of AI tools for completing assignments must be disclosed and will be discussed as
+                    part of the course content.
+                </p>
+            </div>
+        </main>
+
+        <footer>
+            <p>UC Berkeley EECS • Spring 2026 • Questions? Contact instructors via bCourses</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple page navigation
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.hasAttribute('data-external')) {
+                    return;
+                }
+                e.preventDefault();
+
+                // Remove active class from all links and pages
+                navLinks.forEach(l => l.classList.remove('active'));
+                pages.forEach(p => p.classList.remove('active'));
+
+                // Add active class to clicked link
+                link.classList.add('active');
+
+                // Show corresponding page
+                const targetId = link.getAttribute('href').substring(1);
+                const targetPage = document.getElementById(targetId);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth scroll behavior
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
